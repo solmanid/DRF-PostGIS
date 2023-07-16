@@ -1,19 +1,27 @@
+# Python
 import random
 
-from django.contrib.auth import authenticate
+# Django build-in
+from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
+# DRF
 from rest_framework import generics
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+# Local django
 from .models import OtpCode, User
-from .serializers import UserRegisterSerializers, UserSerializer, UserLoginSerializer, UserUpdateSerializer
+from .permissions import IsOwnerOrReadOnly
+from .serializers import UserRegisterSerializers, UserSerializer, UserLoginSerializer, UserUpdateSerializer, \
+    OtpCodeSerializer
 
 
 # Create your views here.
+
 
 class UserRegister(APIView):
     serializer_class = UserRegisterSerializers
@@ -29,20 +37,23 @@ class UserRegister(APIView):
         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserRegisterVerify(generics.GenericAPIView):
-    def get(self, request, token):
-        try:
-            user = User.objects.get(token=token)
-            user.is_active = True
-            user.save()
-            return Response({_('detail'): _('Email verified successfully.')}, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response({_('detail'): _('Invalid verification token.')}, status=status.HTTP_400_BAD_REQUEST)
+# todo: this is can verifying account with sen token to user email
+# I have error key must be str, int , ... not __proxy__
+# class UserRegisterVerify(APIView):
+#     def get(self, request, token):
+#         try:
+#             user = User.objects.get(token=token)
+#             user.is_active = True
+#             user.save()
+#             return Response({_('detail'): _('Email verified successfully.')}, status=status.HTTP_200_OK)
+#         except User.DoesNotExist:
+#             return Response({_('detail'): _('Invalid verification token.')}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetUser(APIView):
     def get(self, request):
         user = request.user
+        print(user)
         ser_data = UserSerializer(instance=request.user)
         return Response(ser_data.data, status=status.HTTP_200_OK)
 
@@ -54,31 +65,59 @@ class UserLogin(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
+        print(user)
 
         if user is not None:
             otp = OtpCode.objects.create(email=user.email, code=random.randint(1000, 9999))
             otp_code = otp.code
-            request.session['otp_code'] = otp_code
+            otp.send_gmail(email=user.email, code=otp_code)
 
             refresh = RefreshToken.for_user(user)
             token = str(refresh.access_token)
-            return Response({'token': token}, status=status.HTTP_200_OK)
+            return Response({'token': "Check your email box we send you a code "}, status=status.HTTP_200_OK)
         return Response({_('error'): _('Invalid credentials')}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-Token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg5ODM3MzMwLCJpYXQiOjE2ODk0MDUzMzAsImp0aSI6Ijg2NGZiYTY3Y2ZhNjQxMzM5MWVhZGUzOTkxZjQwNTIyIiwidXNlcl9pZCI6Mn0.a5cl5MPdNyniwcFGTPkr3G50CE1ghkhLLEpZaXIOcYA'
+class UserLoginVerify(APIView):
+    serializer_class = OtpCodeSerializer
+
+    def post(self, request: HttpRequest):
+        ser_data = OtpCodeSerializer(data=request.data)
+        if ser_data.is_valid():
+            user_code = ser_data.validated_data.get('code')
+            try:
+                db_code = OtpCode.objects.get(code=user_code)
+            except OtpCode.DoesNotExist:
+                return Response({_('error'): _('Invalid Code')}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                user = User.objects.get(email__iexact=db_code.email)
+                refresh = RefreshToken.for_user(user)
+                token = str(refresh.access_token)
+                user.token = str(token)
+                user.save()
+                # token = Token.objects.get_or_create(user)
+
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                authenticate(username=user.username, password=user.password)
+                return Response({'token': token}, status=status.HTTP_200_OK)
+        return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg5ODM3MzMwLCJpYXQiOjE2ODk0MDUzMzAsImp0aSI6Ijg2NGZiYTY3Y2ZhNjQxMzM5MWVhZGUzOTkxZjQwNTIyIiwidXNlcl9pZCI6Mn0.a5cl5MPdNyniwcFGTPkr3G50CE1ghkhLLEpZaXIOcYA'
 
 
 class UserUpdate(generics.UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserUpdateSerializer
-    lookup_field = 'pk'
+    lookup_field = 'id'
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_serializer(self, *args, **kwargs):
         kwargs['partial'] = True  # Set partial=True
         return super().get_serializer(*args, **kwargs)
 
     def perform_update(self, serializer):
+
         if 'password' in self.request.data:
             raw_password = self.request.data['password']
             user = serializer.save()
@@ -87,3 +126,16 @@ class UserUpdate(generics.UpdateAPIView):
 
         else:
             serializer.save()
+
+
+class UserLogout(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        token = request.user.token
+        user = User.objects.get(token__exact=token)
+        user.token = ''
+        user.save()
+        token = ''
+        logout(request)
+        print(request.user.is_authenticated)
+        return Response("Successfully")

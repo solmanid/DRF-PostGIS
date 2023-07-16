@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'captcha',
     'rosetta',
+    'django_rest_passwordreset',
 
 ]
 
@@ -153,6 +154,8 @@ MEDIA_ROOT = 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
 EMAIL_HOST_USER = '47565f25e47ad6'
 EMAIL_HOST_PASSWORD = '6960240a459ab9'
@@ -211,4 +214,12 @@ SPECTACULAR_SETTINGS = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=10),
+}
+
+import datetime
+JWT_AUTH = {
+    'JWT_VERIFY': True,
+    'JWT_VERIFY_EXPIRATION': True,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=2),
+    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }

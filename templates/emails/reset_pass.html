@@ -376,10 +376,12 @@
                         <tr>
                             <td>
                                 <div class="text" style="padding: 0 2.5em; text-align: center;">
-                                    <h2>Please click on link</h2>
+                                    <h3>{{ username }}</h3>
+                                    <h4>{{ email }}</h4>
                                     <p class="btn btn-primary">
-                                          <a href="http://localhost:8000{% url 'user_verify' token=user.token %}"
-                                           class="btn btn-primary">Click here</a></p>
+                                          <a href="{{ reset_password_url }}"
+                                           class="btn btn-primary">Click here</a>
+
                                     </p>
                                 </div>
                             </td>

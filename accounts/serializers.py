@@ -1,9 +1,13 @@
+# Django Build-in
 from django.utils.crypto import get_random_string
+from django.utils.encoding import force_str
+# DRF
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+# Local Django
 from utils.email_service import send_email
-from .models import User
+from .models import User, OtpCode
 
 
 class UserRegisterSerializers(serializers.ModelSerializer):
@@ -42,18 +46,18 @@ class UserRegisterSerializers(serializers.ModelSerializer):
         user.save()
         refresh = RefreshToken.for_user(user)
         token = str(refresh.access_token)
-        user.token = token
+        user.token = str(token)
         user.refresh_token = str(refresh)
-        user.is_active = False
+        # user.is_active = False
         user.save()
         send_email(
             subject='Account Verify',
             to=validated_data['email'],
-            context={'token': token},
-            template_name='emails/verify.html')
+            context={'token': str(token)},
+            template_name='emails/reset_pass.html')
         return {
             'user': user,
-            'token': token
+            'token': token,
         }
 
 
@@ -91,4 +95,12 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'last_name',
             'email',
             'avatar'
+        ]
+
+
+class OtpCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OtpCode
+        fields = [
+            'code'
         ]

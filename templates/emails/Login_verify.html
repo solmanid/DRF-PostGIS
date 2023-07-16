@@ -280,7 +280,7 @@
         }
 
         .heading-section-white h2 {
-            font-family: line-height: 1;
+            font-family: line-height, serif ;
             padding-bottom: 0;
         }
 
@@ -378,8 +378,9 @@
                             <td>
                                 <div class="text" style="padding: 0 2.5em; text-align: center;">
                                     <h2>Please click on link</h2>
-                                    <p>
-                                        <a href="http://localhost:8000{% url 'reset-pass' active_code=user.email_active_code %}"
+
+                                      <p class="btn btn-primary">
+                                          <a href="http://localhost:8000{% url 'user_verify' token=token %}"
                                            class="btn btn-primary">Click here</a></p>
                                 </div>
                             </td>
