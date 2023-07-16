@@ -1,0 +1,73 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    command: >
+      sh -c "/wait && gunicorn reporter.wsgi -b 0.0.0.0:8000"
+
+    environment:
+      #WAIT_HOSTS: postgis:5432, mongodb:27017
+      - POSTGRES_PASSWORD=gis
+      - POSTGRES_DB_NAME=gis
+      - POSTGRES_USER=gis
+
+    volumes:
+      - .:/code
+      - ./static:/code/static/
+#      - media:/code/media/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - main
+
+  db:
+    image: kartoza/postgis:12.1
+    restart: always
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - main
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=gis
+      - POSTGRES_USER=gis
+      - POSTGRES_PASSWORD=gis
+  pgadmin4:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: soltanim00800@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'True'
+      PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: 10
+    ports:
+      - "5480:80"
+    networks:
+      - main
+
+  nginx_server:
+    container_name: nginx_server
+    command: nginx -g 'daemon off;'
+    image: nginx:latest
+    depends_on:
+      - app
+    networks:
+      - main
+    ports:
+      - "80:80"
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./static:/code/static/
+
+
+networks:
+  main:
+    external:
+      name: main
+
+#volumes:
+#  static:
+#  media:

@@ -1,0 +1,100 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-15 11:53+0000\n"
+"PO-Revision-Date: 2023-07-15 12:02+0000\n"
+"Last-Translator: mmd soltani <root@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Translated-Using: django-rosetta 0.9.9\n"
+
+#: accounts/apps.py:10
+msgid "Account"
+msgstr "حساب"
+
+#: accounts/apps.py:11
+msgid "Accounts"
+msgstr "حساب ها "
+
+#: accounts/models.py:10
+msgid "avatar"
+msgstr "تصویر پروفایل"
+
+#: accounts/models.py:14
+msgid "Email-Active-Code"
+msgstr "کد فعالسازی ایمیل"
+
+#: accounts/models.py:25
+msgid "user"
+msgstr "حساب"
+
+#: accounts/models.py:26
+msgid "users"
+msgstr "حساب ها "
+
+#: accounts/models.py:30
+msgid "Email"
+msgstr "ایمیل"
+
+#: accounts/models.py:32
+msgid "Created"
+msgstr "زمان اضافه شدن"
+
+#: accounts/models.py:35
+msgid "Otp Code"
+msgstr "کد فعالسازی"
+
+#: accounts/models.py:36
+msgid "Otp Codes"
+msgstr "کدهای فعالسازی"
+
+#: accounts/views.py:38 accounts/views.py:40
+msgid "detail"
+msgstr "جزيئات "
+
+#: accounts/views.py:38
+msgid "Email verified successfully."
+msgstr "فعالسازی ایمیل موفقات آمیز بود"
+
+#: accounts/views.py:40
+msgid "Invalid verification token."
+msgstr "توکن صحيح نیست"
+
+#: accounts/views.py:66
+msgid "error"
+msgstr "خطا"
+
+#: accounts/views.py:66
+msgid "Invalid credentials"
+msgstr "گواهی نامه نامعتبر"
+
+#: reporter/settings.py:133
+msgid "English"
+msgstr "انگلیسی"
+
+#: reporter/settings.py:134
+msgid "Farsi"
+msgstr "فارسی"
+
+#: templates/admin/base_site.html:27
+msgid "Documentation"
+msgstr "مستندات"
+
+#: templates/admin/base_site.html:31
+msgid "Change password"
+msgstr "تغییر رمز عبور"
+
+#: templates/admin/base_site.html:33
+msgid "Log out"
+msgstr "خارج شدن از حساب کاربری"
