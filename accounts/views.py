@@ -1,4 +1,5 @@
 # Python
+import datetime
 import random
 
 # Django build-in
@@ -30,14 +31,11 @@ class UserRegister(APIView):
         ser_data = UserRegisterSerializers(data=request.POST)
         if ser_data.is_valid():
             ser_data.create(validated_data=ser_data.validated_data)
-            # user = ser_data.save()
-            # token = RefreshToken.for_user(ser_data.save())
-            # print(token)
             return Response(data=ser_data.data, status=status.HTTP_201_CREATED)
         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# todo: this is can verifying account with sen token to user email
+# todo: this is can verifying account with send token to user email
 # I have error key must be str, int , ... not __proxy__
 # class UserRegisterVerify(APIView):
 #     def get(self, request, token):
@@ -51,6 +49,7 @@ class UserRegister(APIView):
 
 
 class GetUser(APIView):
+    serializer_class = UserSerializer
     def get(self, request):
         user = request.user
         print(user)
@@ -90,16 +89,24 @@ class UserLoginVerify(APIView):
             except OtpCode.DoesNotExist:
                 return Response({_('error'): _('Invalid Code')}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                user = User.objects.get(email__iexact=db_code.email)
-                refresh = RefreshToken.for_user(user)
-                token = str(refresh.access_token)
-                user.token = str(token)
-                user.save()
-                # token = Token.objects.get_or_create(user)
+                otp_date = db_code.created.minute + 2
+                today_now = datetime.datetime.now().minute
+                if otp_date < today_now:
+                    db_code.delete()
+                    return Response({'Time': 'Expired code'}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    user = User.objects.filter(email__iexact=db_code.email).first()
+                    refresh = RefreshToken.for_user(user)
+                    token = str(refresh.access_token)
+                    user.token = str(token)
+                    user.save()
+                    # token = Token.objects.get_or_create(user)
 
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                authenticate(username=user.username, password=user.password)
-                return Response({'token': token}, status=status.HTTP_200_OK)
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    authenticate(username=user.username, password=user.password)
+                    db_code.delete()
+                    return Response({'token': token}, status=status.HTTP_200_OK)
+
         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -130,6 +137,7 @@ class UserUpdate(generics.UpdateAPIView):
 
 class UserLogout(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         token = request.user.token
         user = User.objects.get(token__exact=token)
@@ -138,4 +146,4 @@ class UserLogout(APIView):
         token = ''
         logout(request)
         print(request.user.is_authenticated)
-        return Response("Successfully")
+        return Response("Successfully", status=status.HTTP_200_OK)
