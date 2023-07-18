@@ -22,7 +22,6 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
-    path('api-auth/', include('rest_framework.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # Optional UI:
     path('swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
@@ -31,6 +30,8 @@ urlpatterns = [
 
 ]
 urlpatterns += i18n_patterns(
+    path('user/', include('rest_framework.urls')),
+
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('captcha/', include('captcha.urls')),

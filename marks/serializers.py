@@ -1,5 +1,7 @@
+# DRF
 from rest_framework import serializers
 
+# Django local
 from .models import PlacePoints
 
 

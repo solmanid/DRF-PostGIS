@@ -6,6 +6,7 @@ import random
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
+
 # DRF
 from rest_framework import generics
 from rest_framework import status
@@ -17,8 +18,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 # Local django
 from .models import OtpCode, User
 from .permissions import IsOwnerOrReadOnly
-from .serializers import UserRegisterSerializers, UserSerializer, UserLoginSerializer, UserUpdateSerializer, \
-    OtpCodeSerializer
+from .serializers import (
+    UserRegisterSerializers,
+    UserSerializer,
+    UserLoginSerializer,
+    UserUpdateSerializer,
+    OtpCodeSerializer,
+)
 
 
 # Create your views here.
@@ -50,6 +56,7 @@ class UserRegister(APIView):
 
 class GetUser(APIView):
     serializer_class = UserSerializer
+
     def get(self, request):
         user = request.user
         print(user)
@@ -108,9 +115,6 @@ class UserLoginVerify(APIView):
                     return Response({'token': token}, status=status.HTTP_200_OK)
 
         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# Token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg5ODM3MzMwLCJpYXQiOjE2ODk0MDUzMzAsImp0aSI6Ijg2NGZiYTY3Y2ZhNjQxMzM5MWVhZGUzOTkxZjQwNTIyIiwidXNlcl9pZCI6Mn0.a5cl5MPdNyniwcFGTPkr3G50CE1ghkhLLEpZaXIOcYA'
 
 
 class UserUpdate(generics.UpdateAPIView):

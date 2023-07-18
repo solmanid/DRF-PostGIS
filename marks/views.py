@@ -1,19 +1,17 @@
+# Django build-in
 from django.contrib.gis.geos import Point
 from django.http import HttpRequest
+# DRF
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, RetrieveDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
 
+# Local django
 from .models import PlacePoints
 from .permissions import IsOwnerOrReadOnly
 from .serializers import MarksListSerializers, MarksAddSerializers, UpdateMarkSerializer
 
-
-# Create your views here.
-
-
-# Create your views here.
 
 class MarksList(ListAPIView):
     queryset = PlacePoints.objects.all()
