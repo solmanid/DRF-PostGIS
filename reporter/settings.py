@@ -88,20 +88,24 @@ WSGI_APPLICATION = 'reporter.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         "ENGINE": "django.contrib.gis.db.backends.postgis",
+#         "NAME": 'gis',
+#         "USER": 'gis',
+#         "PASSWORD": 'gis',
+#         "HOST": 'localhost',
+#         "PORT": '5432',
+#     }
+# }
+
+
 DATABASES = {
     'default': {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": 'gis',
-        "USER": 'gis',
-        "PASSWORD": 'gis',
-        "HOST": 'localhost',
-        "PORT": '5432',
+        # "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "ENGINE": "django.db.backends.postgresql",
     }
 }
-
-
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -220,6 +224,7 @@ SIMPLE_JWT = {
 }
 
 import datetime
+
 JWT_AUTH = {
     'JWT_VERIFY': True,
     'JWT_VERIFY_EXPIRATION': True,
