@@ -6,7 +6,7 @@ COPY ./requirements.txt /code/
 
 RUN pip install -r requirements.txt
 
-EXPOSE 8000
+EXPOSE 80
 
 ENV PYTHONUNBUFFERED 1
 
@@ -26,4 +26,4 @@ RUN pip install -r /requirements.txt
 
 RUN mkdir -p /docker-entrypoint-initdb.d
 
-CMD ["gunicorn", "reporter.wsgi", ":8000"]
+CMD ["gunicorn", "reporter.wsgi", ":80"]

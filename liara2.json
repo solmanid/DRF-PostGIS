@@ -1,0 +1,17 @@
+{
+  "django": {
+    "geospatial": true
+  },
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "platform": "docker",
+  "image": "kartoza/postgis:12.1",
+  "ports": 80,
+  "disks": [
+    {
+      "name": "data",
+      "mountTo": "/var/lib/postgresql"
+    }
+  ]
+}

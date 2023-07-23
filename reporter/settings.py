@@ -9,9 +9,12 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import datetime
 import os
 from datetime import timedelta
 from pathlib import Path
+
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
     'captcha',
     'rosetta',
     'django_rest_passwordreset',
+    'rest_framework_simplejwt.token_blacklist',
 
 ]
 
@@ -69,8 +73,7 @@ ROOT_URLCONF = 'reporter.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -88,24 +91,25 @@ WSGI_APPLICATION = 'reporter.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+DATABASES = {
+    'default': {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": 'gis',
+        "USER": 'gis',
+        "PASSWORD": 'gis',
+        "HOST": 'localhost',
+        "PORT": '5432',
+    }
+}
+
 # DATABASES = {
 #     'default': {
 #         "ENGINE": "django.contrib.gis.db.backends.postgis",
-#         "NAME": 'gis',
-#         "USER": 'gis',
-#         "PASSWORD": 'gis',
-#         "HOST": 'localhost',
-#         "PORT": '5432',
-#     }
+# }
 # }
 
-
-DATABASES = {
-    'default': {
-        # "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "ENGINE": "django.db.backends.postgresql",
-    }
-}
+GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
+GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -127,7 +131,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-from django.utils.translation import gettext_lazy as _
 
 LANGUAGE_CODE = 'en-us'
 
@@ -185,9 +188,6 @@ AUTHENTICATION_BACKENDS = (
     'guardian.backends.ObjectPermissionBackend',
 )
 
-GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
-GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
-
 AUTH_USER_MODEL = 'accounts.User'
 
 REST_FRAMEWORK = {
@@ -209,6 +209,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 2,
 
+    # 'DEFAULT_RENDERER_CLASSES': [
+    #     'rest_framework.renderers.JSONRenderer',
+    # ],
+    # 'DEFAULT_PARSER_CLASSES': [
+    #     'rest_framework.parsers.JSONParser',
+    # ]
+
 }
 
 SPECTACULAR_SETTINGS = {
@@ -222,8 +229,6 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=10),
 }
-
-import datetime
 
 JWT_AUTH = {
     'JWT_VERIFY': True,

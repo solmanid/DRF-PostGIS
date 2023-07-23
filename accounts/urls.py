@@ -1,9 +1,11 @@
 from django.urls import path, include
-from . import views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    TokenBlacklistView
 )
+
+from . import views
 
 urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -16,5 +18,6 @@ urlpatterns = [
     path('update/<int:id>', views.UserUpdate.as_view(), name='update_user'),
     path('pass-reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path('logout/', views.UserLogout.as_view(), name='user_logout'),
+    path('logout1/', TokenBlacklistView.as_view(), name='logout'),
 
 ]
