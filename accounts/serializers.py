@@ -1,6 +1,5 @@
 # Django Build-in
 from django.utils.crypto import get_random_string
-from django.utils.encoding import force_str
 # DRF
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -104,3 +103,29 @@ class OtpCodeSerializer(serializers.ModelSerializer):
         fields = [
             'code'
         ]
+
+
+class UserViewSetSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'email',
+            'password',
+        ]
+        extra_kwargs = {
+            'password': {
+                'write_only': True
+            }
+        }
+
+    def hash_password(self, ser_data):
+        if 'password' in self.request.data:
+            raw_password = self.request.data['password']
+            user = ser_data.save()
+            user.set_password(raw_password)
+            user.email_active_code = get_random_string(72)
+            user.save()
+
+        else:
+            ser_data.save()

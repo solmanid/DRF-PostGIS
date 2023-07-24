@@ -6,26 +6,24 @@ import random
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
-
 # DRF
 from rest_framework import generics
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.tokens import BlacklistedToken
-
 
 # Local django
 from .models import OtpCode, User
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, IsLoggedInUserOrAdmin
 from .serializers import (
     UserRegisterSerializers,
     UserSerializer,
     UserLoginSerializer,
     UserUpdateSerializer,
-    OtpCodeSerializer,
+    OtpCodeSerializer, UserViewSetSerializers,
 )
 
 
@@ -58,10 +56,10 @@ class UserRegister(APIView):
 
 class GetUser(APIView):
     serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
-        print(user)
         ser_data = UserSerializer(instance=request.user)
         return Response(ser_data.data, status=status.HTTP_200_OK)
 
@@ -141,15 +139,51 @@ class UserUpdate(generics.UpdateAPIView):
             serializer.save()
 
 
-class UserLogout(APIView):
+# class UserLogout(APIView):
+#     permission_classes = [IsAuthenticated]
+#
+#     def get(self, request):
+#         token = request.user.token
+#         user = User.objects.get(token__exact=token)
+#         user.token = ''
+#         user.save()
+#         token = ''
+#         logout(request)
+#         print(request.user.is_authenticated)
+#         return Response("Successfully", status=status.HTTP_200_OK)
+
+
+class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        token = request.user.token
-        user = User.objects.get(token__exact=token)
-        user.token = ''
-        user.save()
-        token = ''
+    def post(self, request):
+        # Blacklist the token to invalidate it
+        try:
+            token = request.META['HTTP_AUTHORIZATION'].split(' ')[1]
+            # Here, you may add more logic to invalidate the token or do other clean-up tasks if needed.
+        except KeyError:
+            return Response({"detail": "Authentication credentials were not provided."},
+                            status=status.HTTP_400_BAD_REQUEST)
         logout(request)
-        print(request.user.is_authenticated)
-        return Response("Successfully", status=status.HTTP_200_OK)
+        return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserViewSetSerializers
+
+    def perform_create(self, serializer):
+        self.serializer_class.hash_password(self=self, ser_data=serializer)
+
+    def perform_update(self, serializer):
+        self.serializer_class.hash_password(self=self, ser_data=serializer)
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action == 'create':
+            permission_classes = [AllowAny]
+        elif self.action == 'retrieve' or self.action == 'update' or self.action == 'partial_update':
+            permission_classes = [IsLoggedInUserOrAdmin]
+        elif self.action == 'list' or self.action == 'destroy':
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
