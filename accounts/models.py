@@ -1,30 +1,81 @@
 # Django build-in
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+# DRF
 from django_rest_passwordreset.signals import reset_password_token_created
 
+# Local django
 from utils.email_service import send_email
 
 
+# from .managers import SupervisorManager
+
+
 class User(AbstractUser):
+    class Types(models.TextChoices):
+        supervisor = "Supervisor"
+        accountant = "Accountant"
+        people = "People"
+
+    email = models.CharField(
+        max_length=200,
+        verbose_name=_('Email'),
+        unique=True,
+    )
     avatar = models.ImageField(
         upload_to='avatar/',
         verbose_name=_("avatar"),
         null=True,
         blank=True,
     )
-    email_active_code = models.CharField(max_length=100, verbose_name=_("Email-Active-Code"))
-    token = models.TextField(null=True, blank=True)
-    refresh_token = models.TextField(null=True, blank=True)
+    email_active_code = models.CharField(
+        max_length=100,
+        verbose_name=_("Email-Active-Code")
+    )
+    token = models.TextField(
+        null=True,
+        blank=True
+    )
+    refresh_token = models.TextField(
+        null=True,
+        blank=True
+    )
+    user_type = models.CharField(
+        choices=Types.choices,
+        default=Types.people,
+        max_length=100,
+        verbose_name=_('Type')
+    )
+    is_supervisor = models.BooleanField(
+        default=False,
+        verbose_name=_('Supervisor')
+    )
+    is_accountant = models.BooleanField(
+        default=False,
+        verbose_name=_('Accountant')
+    )
+    is_people = models.BooleanField(
+        default=True,
+        verbose_name=_('People')
+    )
 
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email"]
 
-    groups = models.ManyToManyField(Group, related_name="user_accounts", blank=True)
-    user_permissions = models.ManyToManyField(Permission, related_name="user_accounts", blank=True)
+    groups = models.ManyToManyField(
+        Group,
+        related_name="user_accounts",
+        blank=True
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name="user_accounts",
+        blank=True
+    )
 
     class Meta:
         verbose_name = _("user")
@@ -32,9 +83,15 @@ class User(AbstractUser):
 
 
 class OtpCode(models.Model):
-    email = models.CharField(max_length=200, verbose_name=_("Email"))
+    email = models.CharField(
+        max_length=200,
+        verbose_name=_("Email")
+    )
     code = models.PositiveSmallIntegerField()
-    created = models.DateTimeField(auto_now=True, verbose_name=_("Created"))
+    created = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_("Created")
+    )
 
     def send_gmail(self, email, code):
         send_email(
@@ -84,21 +141,72 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
         },
         template_name='emails/reset_pass.html'
     )
-    #
-    # # render email text
-    # email_html_message = render_to_string('emails/user_reset_password.html', context)
-    # email_plaintext_message = render_to_string('emails/user_reset_password.txt', context)
-    #
-    # msg = EmailMultiAlternatives(
-    #     # title:
-    #     "Password Reset for {title}".format(title="Some website title"),
-    #     # message:
-    #     email_plaintext_message,
-    #     # from:
-    #     "sandbox.smtp.mailtrap.io",
-    #     # to:
-    #     [reset_password_token.user.email]
-    # )
-    # msg.attach_alternative(email_html_message, "text/html")
-    # msg.send()
-    #
+
+
+class Supervisor(User):
+    national_id = models.CharField(
+        max_length=11,
+        verbose_name=_('National ID'),
+        unique=True
+    )
+    supervisor_code = models.CharField(
+        max_length=30,
+        verbose_name=_('Supervisor Code'),
+        unique=True,
+    )
+    supervisor_license = models.ImageField(
+        upload_to='supervisor/license/',
+        verbose_name=_('License')
+    )
+    accept_place = models.IntegerField(
+        validators=[MinValueValidator, ],
+        verbose_name=_('Accepted Place'),
+        default=0,
+    )
+
+    # objects = SupervisorManager
+
+    class Meta:
+        verbose_name = _('Supervisor')
+        verbose_name_plural = _('Supervisors')
+
+    #     proxy = True
+
+    def save(self, *args, **kwargs):
+        self.user_type = User.Types.supervisor
+        self.is_supervisor = True
+        self.is_people = False
+        return super().save(*args, **kwargs)
+
+
+class Accountant(User):
+    national_id = models.CharField(
+        max_length=11,
+        verbose_name=_('National ID'),
+        unique=True,
+    )
+    accountant_code = models.CharField(
+        max_length=30,
+        verbose_name=_('Accountant Code'),
+        unique=True,
+    )
+    accountant_license = models.ImageField(
+        upload_to='supervisor/license/',
+        verbose_name=_('License')
+    )
+    accept_place = models.IntegerField(
+        validators=[MinValueValidator, ],
+        verbose_name=_('Accepted Place'),
+        default=0,
+    )
+
+    class Meta:
+        verbose_name = _('Accountant')
+        verbose_name_plural = _('Accountants')
+        # proxy = True
+
+    def save(self, *args, **kwargs):
+        self.user_type = User.Types.accountant
+        self.is_accountant = True
+        self.is_people = False
+        return super().save(*args, **kwargs)

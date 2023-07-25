@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 # Local Django
 from utils.email_service import send_email
-from .models import User, OtpCode
+from .models import User, OtpCode, Supervisor
 
 
 class UserRegisterSerializers(serializers.ModelSerializer):
@@ -80,8 +80,11 @@ class UserLoginSerializer(serializers.ModelSerializer):
         fields = [
             'username',
             'password',
-
+            'user_type',
         ]
+        extra_kwargs = {
+            'user_type': {'read_only': True}
+        }
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -95,6 +98,25 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'email',
             'avatar'
         ]
+
+
+class EmployeeUpdateSerializers(serializers.ModelSerializer):
+    new_password = serializers.CharField(write_only=True)
+    confirm_new = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'password',
+            'new_password',
+            'confirm_new',
+        ]
+
+    # def validate(self, data):
+    #     if data['new_password'] != data['confirm_new']:
+    #         raise serializers.ValidationError("Password must be match")
+    #     # return data
 
 
 class OtpCodeSerializer(serializers.ModelSerializer):

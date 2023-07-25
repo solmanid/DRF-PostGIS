@@ -14,10 +14,13 @@ from .serializers import MarksListSerializers, MarksAddSerializers, UpdateMarkSe
 
 
 class MarksList(ListAPIView):
-    queryset = PlacePoints.objects.all()
+    queryset = PlacePoints.objects.filter(is_accepted=True, status=True).order_by('created')
     serializer_class = MarksListSerializers
 
     def get(self, request, *args, **kwargs):
+        if request.user.username:
+            if request.user.is_supervisor is True:
+                self.queryset = PlacePoints.objects.filter(status=True).order_by('created')
         return self.list(request, *args, **kwargs)
 
 

@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'marks',
     'polls',
+    'supervisors',
+    'accountants',
     # Third party
     'guardian',
     'rest_framework',

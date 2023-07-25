@@ -16,14 +16,15 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 # Local django
-from .models import OtpCode, User
+from .models import OtpCode, User, Supervisor, Accountant
 from .permissions import IsOwnerOrReadOnly, IsLoggedInUserOrAdmin
 from .serializers import (
     UserRegisterSerializers,
-    UserSerializer,
     UserLoginSerializer,
     UserUpdateSerializer,
-    OtpCodeSerializer, UserViewSetSerializers,
+    OtpCodeSerializer,
+    UserViewSetSerializers,
+    EmployeeUpdateSerializers,
 )
 
 
@@ -42,27 +43,6 @@ class UserRegister(APIView):
 
 
 # todo: this is can verifying account with send token to user email
-# I have error key must be str, int , ... not __proxy__
-# class UserRegisterVerify(APIView):
-#     def get(self, request, token):
-#         try:
-#             user = User.objects.get(token=token)
-#             user.is_active = True
-#             user.save()
-#             return Response({_('detail'): _('Email verified successfully.')}, status=status.HTTP_200_OK)
-#         except User.DoesNotExist:
-#             return Response({_('detail'): _('Invalid verification token.')}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class GetUser(APIView):
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        ser_data = UserSerializer(instance=request.user)
-        return Response(ser_data.data, status=status.HTTP_200_OK)
-
 
 class UserLogin(APIView):
     serializer_class = UserLoginSerializer
@@ -71,17 +51,32 @@ class UserLogin(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
-        print(user)
+        if user is None:
+            return Response({'user': 'dos not exist'})
+        else:
+            # if user is not None:
+            if user.user_type == 'Supervisor':
+                if user.last_login is None:
+                    return Response({'Notification': 'set a new password', 'User': user.id})
+                else:
+                    refresh = RefreshToken.for_user(user)
+                    token = str(refresh.access_token)
+                    user.token = str(token)
+                    user.save()
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    return Response({'Token': token})
+            if user.user_type == 'Accountant':
+                return Response({'status': 'ok'})
+            if user.user_type == 'People':
+                otp = OtpCode.objects.create(email=user.email, code=random.randint(1000, 9999))
+                otp_code = otp.code
+                otp.send_gmail(email=user.email, code=otp_code)
 
-        if user is not None:
-            otp = OtpCode.objects.create(email=user.email, code=random.randint(1000, 9999))
-            otp_code = otp.code
-            otp.send_gmail(email=user.email, code=otp_code)
-
-            refresh = RefreshToken.for_user(user)
-            token = str(refresh.access_token)
-            return Response({'token': "Check your email box we send you a code "}, status=status.HTTP_200_OK)
-        return Response({_('error'): _('Invalid credentials')}, status=status.HTTP_401_UNAUTHORIZED)
+                refresh = RefreshToken.for_user(user)
+                token = str(refresh.access_token)
+                return Response({'token': "Check your email box we send you a code "}, status=status.HTTP_200_OK)
+            else:
+                return Response({_('error'): _('Invalid credentials')}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class UserLoginVerify(APIView):
@@ -115,6 +110,33 @@ class UserLoginVerify(APIView):
                     return Response({'token': token}, status=status.HTTP_200_OK)
 
         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmployeeUpdate(APIView):
+    serializer_class = EmployeeUpdateSerializers
+
+    def put(self, request, id):
+        super_user = Supervisor.objects.filter(id=id).first()
+        accountant_user = Accountant.objects.filter(id=id).first()
+        user = ''
+        if super_user is not None:
+            user = super_user
+        if accountant_user is not None:
+            user = accountant_user
+
+        if user is None:
+            return Response({'Error': 'User does not exist'})
+        else:
+            ser_data = EmployeeUpdateSerializers(instance=user, data=request.data)
+            if ser_data.is_valid():
+                ser_data.save()
+                refresh = RefreshToken.for_user(user)
+                token = str(refresh.access_token)
+                user.token = str(token)
+                user.save()
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return Response({'Token': token})
+            return Response(ser_data.errors)
 
 
 class UserUpdate(generics.UpdateAPIView):

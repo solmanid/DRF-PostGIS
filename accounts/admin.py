@@ -5,7 +5,7 @@ from guardian.admin import GuardedModelAdmin
 from guardian.shortcuts import get_objects_for_user
 
 # Local Django
-from accounts.models import OtpCode, User
+from accounts.models import OtpCode, User, Accountant, Supervisor
 
 
 @admin.register(User)
@@ -58,3 +58,15 @@ class UserAdmin(GuardedModelAdmin):
 @admin.register(OtpCode)
 class OtpAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Supervisor)
+class SupervisorAdmin(admin.ModelAdmin):
+    filter_horizontal = ('groups',)
+    exclude = ('user_permissions',)
+
+
+@admin.register(Accountant)
+class AccountantAdmin(admin.ModelAdmin):
+    filter_horizontal = ('groups',)
+    exclude = ('user_permissions',)
