@@ -9,21 +9,21 @@ from django.utils.translation import gettext_lazy as _
 # DRF
 from rest_framework import generics
 from rest_framework import status
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 # Local django
-from .models import OtpCode, User, Supervisor, Accountant
-from .permissions import IsOwnerOrReadOnly, IsLoggedInUserOrAdmin
+from accountants.models import Accountant
+from supervisors.models import Supervisor
+from .models import OtpCode, User
+from .permissions import IsOwnerOrReadOnly
 from .serializers import (
     UserRegisterSerializers,
     UserLoginSerializer,
     UserUpdateSerializer,
     OtpCodeSerializer,
-    UserViewSetSerializers,
     EmployeeUpdateSerializers,
 )
 
@@ -62,11 +62,21 @@ class UserLogin(APIView):
                     refresh = RefreshToken.for_user(user)
                     token = str(refresh.access_token)
                     user.token = str(token)
+                    user.refresh_token = str(refresh)
                     user.save()
-                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                    return Response({'Token': token})
+                    # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    return Response({'Token': token, 'refresh': str(refresh)})
             if user.user_type == 'Accountant':
-                return Response({'status': 'ok'})
+                if user.last_login is None:
+                    return Response({'Notification': 'set a new password', 'User': user.id})
+                else:
+                    refresh = RefreshToken.for_user(user)
+                    token = str(refresh.access_token)
+                    user.token = str(token)
+                    user.refresh_token = str(refresh)
+                    user.save()
+                    # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    return Response({'Token': token, 'refresh': str(refresh)})
             if user.user_type == 'People':
                 otp = OtpCode.objects.create(email=user.email, code=random.randint(1000, 9999))
                 otp_code = otp.code
@@ -101,13 +111,14 @@ class UserLoginVerify(APIView):
                     refresh = RefreshToken.for_user(user)
                     token = str(refresh.access_token)
                     user.token = str(token)
+                    user.refresh_token = str(refresh)
                     user.save()
                     # token = Token.objects.get_or_create(user)
 
-                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     authenticate(username=user.username, password=user.password)
                     db_code.delete()
-                    return Response({'token': token}, status=status.HTTP_200_OK)
+                    return Response({'token': token, 'refresh': str(refresh)}, status=status.HTTP_200_OK)
 
         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -118,7 +129,7 @@ class EmployeeUpdate(APIView):
     def put(self, request, id):
         super_user = Supervisor.objects.filter(id=id).first()
         accountant_user = Accountant.objects.filter(id=id).first()
-        user = ''
+        user: User = ''
         if super_user is not None:
             user = super_user
         if accountant_user is not None:
@@ -129,13 +140,18 @@ class EmployeeUpdate(APIView):
         else:
             ser_data = EmployeeUpdateSerializers(instance=user, data=request.data)
             if ser_data.is_valid():
-                ser_data.save()
                 refresh = RefreshToken.for_user(user)
                 token = str(refresh.access_token)
                 user.token = str(token)
+                user.refresh_token = str(refresh)
                 user.save()
+                # check_pass = user.check_password(ser_data.validated_data['new_password'])
+                # if check_pass is True:
+                user.set_password(ser_data.validated_data['new_password'])
+                ser_data.save()
+
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                return Response({'Token': token})
+                return Response({'Token': user.token})
             return Response(ser_data.errors)
 
 
@@ -189,23 +205,22 @@ class LogoutView(APIView):
         logout(request)
         return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)
 
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserViewSetSerializers
-
-    def perform_create(self, serializer):
-        self.serializer_class.hash_password(self=self, ser_data=serializer)
-
-    def perform_update(self, serializer):
-        self.serializer_class.hash_password(self=self, ser_data=serializer)
-
-    def get_permissions(self):
-        permission_classes = []
-        if self.action == 'create':
-            permission_classes = [AllowAny]
-        elif self.action == 'retrieve' or self.action == 'update' or self.action == 'partial_update':
-            permission_classes = [IsLoggedInUserOrAdmin]
-        elif self.action == 'list' or self.action == 'destroy':
-            permission_classes = [IsAdminUser]
-        return [permission() for permission in permission_classes]
+# class UserViewSet(viewsets.ModelViewSet):
+#     queryset = User.objects.all()
+#     serializer_class = UserViewSetSerializers
+#
+#     def perform_create(self, serializer):
+#         self.serializer_class.hash_password(self=self, ser_data=serializer)
+#
+#     def perform_update(self, serializer):
+#         self.serializer_class.hash_password(self=self, ser_data=serializer)
+#
+#     def get_permissions(self):
+#         permission_classes = []
+#         if self.action == 'create':
+#             permission_classes = [AllowAny]
+#         elif self.action == 'retrieve' or self.action == 'update' or self.action == 'partial_update':
+#             permission_classes = [IsLoggedInUserOrAdmin]
+#         elif self.action == 'list' or self.action == 'destroy':
+#             permission_classes = [IsAdminUser]
+#         return [permission() for permission in permission_classes]

@@ -42,7 +42,8 @@ class PlacePoints(models.Model):
     location = models.PointField(
         null=True,
         blank=True,
-        verbose_name=_('Location')
+        verbose_name=_('Location'),
+
     )
 
     likes = models.IntegerField(
@@ -61,7 +62,7 @@ class PlacePoints(models.Model):
         verbose_name=_('Accepted')
     )
 
-    created = models.DateField(
+    created = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_('Created Time')
     )
@@ -75,6 +76,7 @@ class PlacePoints(models.Model):
         return f"{_('User')}: {self.user.username}" \
                f"- {_('Accepted')}: {self.is_accepted} " \
                f"- {_('Description')}:{self.description}" \
+               f"- {_('Location')}:{self.location}" \
                f"- {_('Date')}: {self.created} "
 
 

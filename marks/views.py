@@ -34,7 +34,7 @@ class AddMark(APIView):
             lat = float(ser_data.validated_data['lat'])
             lng = float(ser_data.validated_data['lng'])
 
-            points = Point(lat, lng)
+            points = Point(lng, lat)
 
             user = request.user
             PlacePoints.objects.create(
@@ -66,7 +66,7 @@ class UpdateMark(RetrieveUpdateAPIView):
         else:
             lat = float(lat)
             lng = float(lng)
-            loc = Point(lat, lng)
+            loc = Point(lng, lat)
             instance.location = loc
             serializer.save()
 

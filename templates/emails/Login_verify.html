@@ -359,7 +359,7 @@
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                         <tr>
                             <td class="logo" style="text-align: center;">
-                                <h1><a href="">Account Recovery </a></h1>
+                                <h1><a href="">Login Verify </a></h1>
                             </td>
                         </tr>
                     </table>
@@ -377,11 +377,11 @@
                         <tr>
                             <td>
                                 <div class="text" style="padding: 0 2.5em; text-align: center;">
-                                    <h2>Please click on link</h2>
+                                    <h2>Please click on code</h2>
 
                                       <p class="btn btn-primary">
-                                          <a href="http://localhost:8000{% url 'user_verify' token=token %}"
-                                           class="btn btn-primary">Click here</a></p>
+                                          <a href="http://localhost:8000/en/accounts/login/verify/"
+                                           class="btn btn-primary">{{ code }}</a></p>
                                 </div>
                             </td>
                         </tr>

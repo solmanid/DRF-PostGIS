@@ -35,6 +35,8 @@ urlpatterns += i18n_patterns(
     path('accounts/', include('accounts.urls')),
     path('captcha/', include('captcha.urls')),
     path('marks/', include('marks.urls')),
+    path('supervisor/', include('supervisors.urls')),
+    path('accountant/', include('accountants.urls')),
 
 )
 if bool(settings.DEBUG):

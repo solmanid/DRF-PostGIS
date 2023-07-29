@@ -14,11 +14,9 @@
 
 {% block userlinks %}
     <a href="{{ request|switch_i18n:'en' }}">
-{#        <img class="i18n_flag" src="{% static 'images/flag-usa-16.png' %}"/>#}
     En
     </a> /
     <a href="{{ request|switch_i18n:'fa' }}">
-{#        <img class="i18n_flag" src="{% static 'images/flag-china-16.png' %}"/>#}
     Fa
     </a>
     {% if user.is_active and user.is_staff %}

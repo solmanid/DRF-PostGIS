@@ -95,7 +95,7 @@ class OtpCode(models.Model):
 
     def send_gmail(self, email, code):
         send_email(
-            subject='Login Verify',
+            subject='LoginVerify',
             to=email,
             context={'code': code},
             template_name='emails/Login_verify.html')
@@ -121,14 +121,14 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
     :return:
     """
     # send an e-mail to the user
-    context = {
-        'current_user': reset_password_token.user,
-        'username': reset_password_token.user.username,
-        'email': reset_password_token.user.email,
-        'reset_password_url': "{}?token={}".format(
-            instance.request.build_absolute_uri(reverse('password_reset:reset-password-confirm')),
-            reset_password_token.key)
-    }
+    # context = {
+    #     'current_user': reset_password_token.user,
+    #     'username': reset_password_token.user.username,
+    #     'email': reset_password_token.user.email,
+    #     'reset_password_url': "{}?token={}".format(
+    #         instance.request.build_absolute_uri(reverse('password_reset:reset-password-confirm')),
+    #         reset_password_token.key)
+    # }
 
     send_email(
         subject='Reset',
@@ -142,71 +142,3 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
         template_name='emails/reset_pass.html'
     )
 
-
-class Supervisor(User):
-    national_id = models.CharField(
-        max_length=11,
-        verbose_name=_('National ID'),
-        unique=True
-    )
-    supervisor_code = models.CharField(
-        max_length=30,
-        verbose_name=_('Supervisor Code'),
-        unique=True,
-    )
-    supervisor_license = models.ImageField(
-        upload_to='supervisor/license/',
-        verbose_name=_('License')
-    )
-    accept_place = models.IntegerField(
-        validators=[MinValueValidator, ],
-        verbose_name=_('Accepted Place'),
-        default=0,
-    )
-
-    # objects = SupervisorManager
-
-    class Meta:
-        verbose_name = _('Supervisor')
-        verbose_name_plural = _('Supervisors')
-
-    #     proxy = True
-
-    def save(self, *args, **kwargs):
-        self.user_type = User.Types.supervisor
-        self.is_supervisor = True
-        self.is_people = False
-        return super().save(*args, **kwargs)
-
-
-class Accountant(User):
-    national_id = models.CharField(
-        max_length=11,
-        verbose_name=_('National ID'),
-        unique=True,
-    )
-    accountant_code = models.CharField(
-        max_length=30,
-        verbose_name=_('Accountant Code'),
-        unique=True,
-    )
-    accountant_license = models.ImageField(
-        upload_to='supervisor/license/',
-        verbose_name=_('License')
-    )
-    accept_place = models.IntegerField(
-        validators=[MinValueValidator, ],
-        verbose_name=_('Accepted Place'),
-        default=0,
-    )
-
-    class Meta:
-        verbose_name = _('Accountant')
-        verbose_name_plural = _('Accountants')
-        # proxy = True
-
-    def save(self, *args, **kwargs):
-        self.user_type = User.Types.accountant
-        self.is_accountant = True
-        self.is_people = False
-        return super().save(*args, **kwargs)

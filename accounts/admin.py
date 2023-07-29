@@ -1,17 +1,25 @@
 # Django Build-in
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 # Third Party
 from guardian.admin import GuardedModelAdmin
 from guardian.shortcuts import get_objects_for_user
 
 # Local Django
-from accounts.models import OtpCode, User, Accountant, Supervisor
+from accounts.models import OtpCode, User
 
 
 @admin.register(User)
-class UserAdmin(GuardedModelAdmin):
-    pass
+class UserAdmin(GuardedModelAdmin, UserAdmin):
     filter_horizontal = ('groups', 'user_permissions')
+    fieldsets = (
+        (None, {'fields': ('email', 'is_staff', 'is_superuser', 'password')}),
+        ('Role', {'fields': ('user_type', 'is_people', 'is_supervisor', 'is_accountant')}),
+        ('Personal info', {'fields': ('username', 'last_login', 'date_joined')}),
+        ('Groups', {'fields': ('groups',)}),
+        ('Permissions', {'fields': ('user_permissions',)}),
+        ('Token', {'fields': ('token', 'refresh_token',)})
+    )
 
     def has_module_permission(self, request):
         if super().has_module_permission(request):
@@ -58,15 +66,3 @@ class UserAdmin(GuardedModelAdmin):
 @admin.register(OtpCode)
 class OtpAdmin(admin.ModelAdmin):
     pass
-
-
-@admin.register(Supervisor)
-class SupervisorAdmin(admin.ModelAdmin):
-    filter_horizontal = ('groups',)
-    exclude = ('user_permissions',)
-
-
-@admin.register(Accountant)
-class AccountantAdmin(admin.ModelAdmin):
-    filter_horizontal = ('groups',)
-    exclude = ('user_permissions',)
