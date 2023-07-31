@@ -116,7 +116,7 @@ class EmployeeUpdateSerializers(serializers.ModelSerializer):
     def validate(self, data):
         if data['new_password'] != data['confirm_new']:
             raise serializers.ValidationError("Password must be match")
-        # return data
+        return data
 
 
 class OtpCodeSerializer(serializers.ModelSerializer):

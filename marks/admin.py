@@ -1,18 +1,39 @@
 # Django build-in
 from django.contrib import admin
-from django.contrib.gis.admin import OSMGeoAdmin
-from django.utils.translation import gettext_lazy as _
-
+from django.contrib.gis.admin import TabularInline, StackedInline
 # Third Party
 from guardian.admin import GuardedModelAdmin
-from guardian.shortcuts import get_objects_for_user, remove_perm
+from guardian.shortcuts import get_objects_for_user
+from leaflet.admin import LeafletGeoAdmin
 
 # Local Django
-from .models import PlacePoints
+from .models import PlacePoints, AcceptedPlace
+
+
+# @admin.register(AcceptedPlace)
+class AcceptedPlaceAdmin(StackedInline):
+    model = AcceptedPlace
+    extra = 1
+    list_display = (
+        'supervisor',
+        'level',
+        'created',
+        'updated',
+        'is_paid',
+    )
+    list_editable = (
+        'level',
+        'is_paid',
+    )
+
+    ordering = (
+        'created',
+    )
 
 
 @admin.register(PlacePoints)
-class LocationAdmin(GuardedModelAdmin, OSMGeoAdmin):
+class LocationAdmin(GuardedModelAdmin, LeafletGeoAdmin):
+    inlines = (AcceptedPlaceAdmin,)
     list_display = (
         'user',
         'status',
@@ -22,6 +43,11 @@ class LocationAdmin(GuardedModelAdmin, OSMGeoAdmin):
     list_editable = ('status', 'is_accepted')
     list_filter = ('status', 'is_accepted')
     ordering = ('-status', 'likes')
+    search_fields = (
+        'user__username',
+        'user__first_name',
+        'user__last_name',
+    )
 
     def has_module_permission(self, request):
         if super().has_module_permission(request):

@@ -8,12 +8,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import IsOwnerOrReadOnly
+from marks.models import AcceptedPlace
 from marks.models import PlacePoints
 from marks.serializers import MarksListSerializers
 # Local django
 from supervisors.models import Supervisor
 from .permissions import IsSupervisorUser
-from .serializers import SupervisorProfileSerializer
+from .serializers import SupervisorProfileSerializer, AcceptPlaceSerializer
 
 
 # Third party
@@ -38,3 +39,46 @@ class ShowReportsView(generics.ListAPIView):
     permission_classes = [IsSupervisorUser]
     serializer_class = MarksListSerializers
     queryset = PlacePoints.objects.filter(status=True).order_by('created')
+
+
+class AcceptPlace(generics.ListCreateAPIView):
+    queryset = AcceptedPlace.objects.all()
+    serializer_class = AcceptPlaceSerializer
+
+    permission_classes = [
+        IsSupervisorUser,
+    ]
+
+    def perform_create(self, serializer):
+        supervisor = Supervisor.objects.filter(id=self.request.user.id).first()
+
+        serializer.supervisor = supervisor
+        serializer.save()
+        return serializer
+
+
+class Accept(APIView):
+    serializer_class = AcceptPlaceSerializer
+    permission_classes = [
+        IsSupervisorUser
+    ]
+
+    def get(self, request):
+        query = AcceptedPlace.objects.filter(is_paid=False)
+        ser_data = AcceptPlaceSerializer(instance=query, many=True)
+        return Response(data=ser_data.data)
+
+    def post(self, request):
+        # Assuming you have already authenticated the user
+        serializer = AcceptPlaceSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            mark: PlacePoints = serializer.validated_data['mark']
+            place = PlacePoints.objects.get(id=mark.id)
+            if place.is_accepted is False and mark is not None:
+                place.is_accepted = True
+                place.save()
+                accepted_place = serializer.save()
+                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'Error': 'Mark does not exists or some one accepted '})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

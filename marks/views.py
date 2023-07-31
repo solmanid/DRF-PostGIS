@@ -1,6 +1,6 @@
 # Django build-in
 from django.contrib.gis.geos import Point
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 # DRF
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, RetrieveDestroyAPIView
@@ -75,3 +75,5 @@ class DeleteMark(RetrieveDestroyAPIView):
     queryset = PlacePoints.objects.all()
     serializer_class = UpdateMarkSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+

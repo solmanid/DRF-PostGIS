@@ -1,6 +1,7 @@
 # DRF
 from rest_framework import serializers
 
+from marks.models import AcceptedPlace
 # Django local
 from .models import Supervisor
 
@@ -17,3 +18,26 @@ class SupervisorProfileSerializer(serializers.ModelSerializer):
         ]
 
 
+class AcceptPlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AcceptedPlace
+        fields = '__all__'
+
+        extra_kwargs = {
+            'supervisor': {'read_only': True},
+            'is_paid': {'read_only': True},
+        }
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+
+        user = Supervisor.objects.filter(username=request.user.username).first()
+
+        accepted_place = AcceptedPlace.objects.create(
+            supervisor=user,
+            description=validated_data['description'],
+            mark=validated_data['mark'],
+            mark_id=validated_data['mark'].id,
+        )
+
+        return accepted_place

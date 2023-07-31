@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import datetime
+import logging
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
     'rest_framework.authtoken',
     'rest_auth',
+    'leaflet',
 ]
 
 MIDDLEWARE = [
@@ -242,3 +244,5 @@ JWT_AUTH = {
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
 # REST_USE_SIMPLE_JWT = True
+
+

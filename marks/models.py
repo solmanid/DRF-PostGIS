@@ -14,6 +14,7 @@ from guardian.shortcuts import assign_perm, remove_perm
 
 # Local django
 from accounts.models import User
+from supervisors.models import Supervisor
 
 
 # Create your models here.
@@ -74,10 +75,8 @@ class PlacePoints(models.Model):
 
     def __str__(self):
         return f"{_('User')}: {self.user.username}" \
-               f"- {_('Accepted')}: {self.is_accepted} " \
-               f"- {_('Description')}:{self.description}" \
-               f"- {_('Location')}:{self.location}" \
-               f"- {_('Date')}: {self.created} "
+               f" - {_('Accepted')}: {self.is_accepted} " \
+               f" - {_('Date')}: {self.created} "
 
 
 class PlacePointsUserObjectPermission(UserObjectPermissionBase):
@@ -127,3 +126,56 @@ def set_permission(sender, instance: PlacePoints, **kwargs):
     assign_perm('view_placepoints', instance.user, instance)
     assign_perm('change_placepoints', instance.user, instance)
     assign_perm('delete_placepoints', instance.user, instance)
+
+
+class AcceptedPlace(models.Model):
+    class Levels(models.TextChoices):
+        hard = "3"
+        normal = "2"
+        easy = "1"
+
+    supervisor = models.ForeignKey(
+        Supervisor,
+        on_delete=models.CASCADE,
+        related_name='sup',
+        verbose_name=_('Supervisor')
+    )
+
+    mark = models.ForeignKey(
+        PlacePoints,
+        on_delete=models.CASCADE,
+        related_name='mark',
+        verbose_name=_('Mark')
+    )
+
+    description = models.TextField(verbose_name=_('description'))
+
+    level = models.CharField(
+        choices=Levels.choices,
+        default=Levels.normal,
+        verbose_name=_('Level')
+    )
+
+    created = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('Created')
+    )
+    updated = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_('Updated')
+    )
+
+    is_paid = models.BooleanField(
+        default=False,
+        verbose_name=_('Paid or Unpaid')
+    )
+
+    def create(self, request):
+        AcceptedPlace.objects.create(
+            supervisor=request.user,
+            description=request.data.get('description'),
+            mark_id=request.data.get('mark'),
+        )
+
+    def __str__(self):
+        return F"{self.supervisor} {self.level}"

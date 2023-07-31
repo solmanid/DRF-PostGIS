@@ -1,6 +1,7 @@
 # Django Build-in
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
 # Third Party
 from guardian.admin import GuardedModelAdmin
 from guardian.shortcuts import get_objects_for_user
@@ -12,14 +13,23 @@ from accounts.models import OtpCode, User
 @admin.register(User)
 class UserAdmin(GuardedModelAdmin, UserAdmin):
     filter_horizontal = ('groups', 'user_permissions')
+    change_form_template = 'admin/user_detail.html'
+    # list_display = ('image_preview',)
     fieldsets = (
-        (None, {'fields': ('email', 'is_staff', 'is_superuser', 'password')}),
+        (None, {'fields': ('email', 'is_staff', 'is_superuser', 'password', 'avatar')}),
         ('Role', {'fields': ('user_type', 'is_people', 'is_supervisor', 'is_accountant')}),
-        ('Personal info', {'fields': ('username', 'last_login', 'date_joined')}),
+        ('Personal info', {'fields': ('username', 'last_login', 'date_joined',)}),
         ('Groups', {'fields': ('groups',)}),
         ('Permissions', {'fields': ('user_permissions',)}),
         ('Token', {'fields': ('token', 'refresh_token',)})
     )
+
+    def image_preview(self, obj):
+        if obj.avatar:
+            return format_html('<img src="{}" width="50px" height="50px">', obj.avatar.url)
+        return None
+
+    image_preview.short_description = 'Avatar'
 
     def has_module_permission(self, request):
         if super().has_module_permission(request):

@@ -1,0 +1,12 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+    {% if original.avatar %}
+        <div style="margin-top: 20px;">
+            <img src="{{ original.avatar.url }}" width="150" height="150" alt="{{ original.get_full_name }}"
+                 style="border-radius: 50%; border: 2px solid #333;">
+        </div>
+    {% endif %}
+    {{ block.super }}
+
+{% endblock %}
