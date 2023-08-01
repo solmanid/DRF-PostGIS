@@ -41,30 +41,14 @@ class ShowReportsView(generics.ListAPIView):
     queryset = PlacePoints.objects.filter(status=True).order_by('created')
 
 
-class AcceptPlace(generics.ListCreateAPIView):
-    queryset = AcceptedPlace.objects.all()
-    serializer_class = AcceptPlaceSerializer
-
-    permission_classes = [
-        IsSupervisorUser,
-    ]
-
-    def perform_create(self, serializer):
-        supervisor = Supervisor.objects.filter(id=self.request.user.id).first()
-
-        serializer.supervisor = supervisor
-        serializer.save()
-        return serializer
-
-
 class Accept(APIView):
     serializer_class = AcceptPlaceSerializer
     permission_classes = [
         IsSupervisorUser
     ]
 
-    def get(self, request):
-        query = AcceptedPlace.objects.filter(is_paid=False)
+    def get(self, request: HttpRequest):
+        query = AcceptedPlace.objects.filter(supervisor=request.user.id)
         ser_data = AcceptPlaceSerializer(instance=query, many=True)
         return Response(data=ser_data.data)
 
@@ -77,6 +61,7 @@ class Accept(APIView):
             if place.is_accepted is False and mark is not None:
                 place.is_accepted = True
                 place.save()
+                serializer.create(serializer.validated_data)
                 accepted_place = serializer.save()
                 return Response(data=serializer.data, status=status.HTTP_201_CREATED)
             else:

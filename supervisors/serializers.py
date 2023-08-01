@@ -28,10 +28,16 @@ class AcceptPlaceSerializer(serializers.ModelSerializer):
             'is_paid': {'read_only': True},
         }
 
+        # def show_own_accept(self):
+        #     request = self.context.get('request')
+        #     own_mark = self.model.objects.filter(supervisor=request.user.id)
+        #     return own_mark
+
     def create(self, validated_data):
         request = self.context.get('request')
 
         user = Supervisor.objects.filter(username=request.user.username).first()
+        print(user)
 
         accepted_place = AcceptedPlace.objects.create(
             supervisor=user,

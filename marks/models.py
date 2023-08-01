@@ -52,6 +52,14 @@ class PlacePoints(models.Model):
         blank=True,
         verbose_name=_('Likes')
     )
+    accept = models.IntegerField(
+        verbose_name=_('accepted'),
+        default=0
+    )
+    failed = models.IntegerField(
+        verbose_name=_('failed'),
+        default=0
+    )
 
     status = models.BooleanField(
         default=True,
@@ -129,6 +137,10 @@ def set_permission(sender, instance: PlacePoints, **kwargs):
 
 
 class AcceptedPlace(models.Model):
+    class Status(models.TextChoices):
+        accepted = 1
+        failed = 2
+
     class Levels(models.TextChoices):
         hard = "3"
         normal = "2"
@@ -168,6 +180,12 @@ class AcceptedPlace(models.Model):
     is_paid = models.BooleanField(
         default=False,
         verbose_name=_('Paid or Unpaid')
+    )
+
+    action = models.SmallIntegerField(
+        choices=Status.choices,
+        default=Status.accepted,
+        verbose_name=_('accept or failed')
     )
 
     def create(self, request):
