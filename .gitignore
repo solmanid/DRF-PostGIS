@@ -11,6 +11,7 @@ media
 venv
 # Backup files #
 *.bak
+liara2.json
 
 # If you are using PyCharm #
 # User-specific stuff

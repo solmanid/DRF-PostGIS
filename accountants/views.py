@@ -25,3 +25,8 @@ class AccountantProfileView(APIView):
             ser_data = AccountantProfileSerializer(instance=user)
             return Response(ser_data.data, status=status.HTTP_200_OK)
         return Response({'Error': 'User does not exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TestingLiara(APIView):
+    def get(self, request):
+        return Response("test ok")
