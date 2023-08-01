@@ -17,8 +17,9 @@ class MarksListSerializers(serializers.ModelSerializer):
             'picture',
             'likes',
             'map_location',
-            'created',
             'status',
+            'is_accepted',
+            'created',
         ]
 
     def get_map_location(self, obj: PlacePoints):
