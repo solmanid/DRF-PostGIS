@@ -29,4 +29,4 @@ class AccountantProfileView(APIView):
 
 class TestingLiara(APIView):
     def get(self, request):
-        return Response({'test': 'ok'})
+        return Response({'test': 'not ok'})
