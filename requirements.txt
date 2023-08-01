@@ -15,7 +15,7 @@ django-rosetta==0.9.9
 django-simple-captcha==0.5.17
 djangorestframework==3.14.0
 djangorestframework-jsonp==1.0.2
-djangorestframework-jwt==1.11.0
+djangorestframework-jwt
 djangorestframework-simplejwt==5.2.2
 drf-spectacular==0.26.3
 GDAL==3.6.4
@@ -29,7 +29,7 @@ Pillow==9.5.0
 polib==1.2.0
 psycopg2==2.9.6
 pyarrow==12.0.1
-PyJWT==2.7.0
+PyJWT
 pytz==2023.3
 PyYAML==6.0
 referencing==0.29.1
