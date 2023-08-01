@@ -4,5 +4,4 @@ from . import views
 
 urlpatterns = [
     path('profile/<int:id>', views.AccountantProfileView.as_view(), name='accountant_profile'),
-    path('te/', views.TestingLiara.as_view()),
 ]
