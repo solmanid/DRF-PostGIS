@@ -1,6 +1,6 @@
 # Django build-in
 from django.contrib.gis.geos import Point
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest
 # DRF
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, RetrieveDestroyAPIView
@@ -14,13 +14,15 @@ from .serializers import MarksListSerializers, MarksAddSerializers, UpdateMarkSe
 
 
 class MarksList(ListAPIView):
-    queryset = PlacePoints.objects.filter(is_accepted=True, status=True).order_by('created')
+    queryset = PlacePoints.objects.filter(status=True).order_by('created')
     serializer_class = MarksListSerializers
 
     def get(self, request, *args, **kwargs):
         if request.user.username:
             if request.user.is_supervisor is True:
-                self.queryset = PlacePoints.objects.filter(status=True).order_by('created')
+                self.queryset = PlacePoints.objects.filter(is_accepted=False).order_by('created')
+            if request.user.is_accountant is True:
+                self.queryset = PlacePoints.objects.filter(is_accepted=True).order_by('created')
         return self.list(request, *args, **kwargs)
 
 
@@ -75,5 +77,3 @@ class DeleteMark(RetrieveDestroyAPIView):
     queryset = PlacePoints.objects.all()
     serializer_class = UpdateMarkSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
-
-

@@ -8,6 +8,7 @@ from .models import PlacePoints
 class MarksListSerializers(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
     map_location = serializers.SerializerMethodField()
+    failed = serializers.IntegerField(default=0)
 
     class Meta:
         model = PlacePoints
@@ -17,6 +18,7 @@ class MarksListSerializers(serializers.ModelSerializer):
             'picture',
             'likes',
             'map_location',
+            'failed',
             'status',
             'is_accepted',
             'created',
@@ -27,6 +29,12 @@ class MarksListSerializers(serializers.ModelSerializer):
         lng = obj.location[1]
 
         return F"{lng},{lat}"
+
+    def to_representation(self, instance: PlacePoints):
+        representation = super().to_representation(instance)
+        representation['failed'] = instance.count_of_failed
+
+        return representation
 
 
 class MarksAddSerializers(serializers.ModelSerializer):

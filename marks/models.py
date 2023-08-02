@@ -26,51 +26,36 @@ class PlacePoints(models.Model):
         related_name='user',
         verbose_name=_("User")
     )
-
     picture = models.ImageField(
         null=True,
         blank=True,
         upload_to='upload/ed',
         verbose_name=_('Picture')
     )
-
     description = models.TextField(
         verbose_name=_('Description'),
         blank=True,
         null=True,
     )
-
     location = models.PointField(
         null=True,
         blank=True,
         verbose_name=_('Location'),
 
     )
-
     likes = models.IntegerField(
         null=True,
         blank=True,
         verbose_name=_('Likes')
     )
-    accept = models.IntegerField(
-        verbose_name=_('accepted'),
-        default=0
-    )
-    failed = models.IntegerField(
-        verbose_name=_('failed'),
-        default=0
-    )
-
     status = models.BooleanField(
         default=True,
         verbose_name=_('Status')
     )
-
     is_accepted = models.BooleanField(
         default=False,
         verbose_name=_('Accepted')
     )
-
     created = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_('Created Time')
@@ -81,10 +66,20 @@ class PlacePoints(models.Model):
         verbose_name = _("Mark")
         verbose_name_plural = _("Marks")
 
+    @property
+    def count_of_accepted(self):
+        mark = self.mark.filter(action=AcceptedPlace.Status.accepted)
+        return mark.count()
+
+    @property
+    def count_of_failed(self):
+        mark = self.mark.filter(action=AcceptedPlace.Status.failed)
+        return mark.count()
+
     def __str__(self):
-        return f"{_('User')}: {self.user.username}" \
-               f" - {_('Accepted')}: {self.is_accepted} " \
-               f" - {_('Date')}: {self.created} "
+        return f"{_('ID')}: {self.id}" \
+               f" - {_('User')}: {self.user.username}" \
+               f" - {_('Accepted')}: {self.is_accepted} "
 
 
 class PlacePointsUserObjectPermission(UserObjectPermissionBase):
@@ -167,7 +162,6 @@ class AcceptedPlace(models.Model):
         default=Levels.normal,
         verbose_name=_('Level')
     )
-
     created = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_('Created')
@@ -176,19 +170,20 @@ class AcceptedPlace(models.Model):
         auto_now=True,
         verbose_name=_('Updated')
     )
-
     is_paid = models.BooleanField(
         default=False,
         verbose_name=_('Paid or Unpaid')
     )
 
-    action = models.SmallIntegerField(
+    action = models.CharField(
+        max_length=3,
         choices=Status.choices,
         default=Status.accepted,
         verbose_name=_('accept or failed')
     )
 
-    def create(self, request):
+    @staticmethod
+    def create(request):
         AcceptedPlace.objects.create(
             supervisor=request.user,
             description=request.data.get('description'),
@@ -196,4 +191,4 @@ class AcceptedPlace(models.Model):
         )
 
     def __str__(self):
-        return F"{self.supervisor} {self.level}"
+        return F"{self.supervisor} - level: {self.level} - id: {self.id}"

@@ -52,18 +52,30 @@ class Accept(APIView):
         ser_data = AcceptPlaceSerializer(instance=query, many=True)
         return Response(data=ser_data.data)
 
-    def post(self, request):
+    def post(self, request: HttpRequest):
         # Assuming you have already authenticated the user
         serializer = AcceptPlaceSerializer(data=request.data, context={'request': request})
+        # mark: PlacePoints = serializer.validated_data['mark']
         if serializer.is_valid():
             mark: PlacePoints = serializer.validated_data['mark']
-            place = PlacePoints.objects.get(id=mark.id)
-            if place.is_accepted is False and mark is not None:
-                place.is_accepted = True
-                place.save()
-                serializer.create(serializer.validated_data)
-                accepted_place = serializer.save()
-                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            check_user = AcceptedPlace.objects.filter(supervisor=request.user.id, mark=mark).exists()
+            place: PlacePoints = PlacePoints.objects.filter(id=mark.id).first()
+
+            if place.is_accepted is False:
+                if check_user is False:
+                    action = serializer.validated_data['action']
+                    if action == '1':
+                        accepted_place = serializer.save()
+                        place.is_accepted = True
+                        place.save()
+                        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+                    if action == '2':
+                        accepted_place = serializer.save()
+                        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+                    return Response({'error': 'some thing is wrong'})
+                else:
+                    return Response({'Error': 'You already one times created'})
             else:
-                return Response({'Error': 'Mark does not exists or some one accepted '})
+                return Response({'Notification': 'This point is accepted'}, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -10,16 +10,17 @@ from leaflet.admin import LeafletGeoAdmin
 from .models import PlacePoints, AcceptedPlace
 
 
-# @admin.register(AcceptedPlace)
-class AcceptedPlaceAdmin(StackedInline):
+@admin.register(AcceptedPlace)
+class AcceptedPlaceAdmin(admin.ModelAdmin):
     model = AcceptedPlace
-    extra = 1
+    # extra = 1
     list_display = (
         'supervisor',
         'level',
         'created',
         'updated',
         'is_paid',
+        'action',
     )
     list_editable = (
         'level',
@@ -33,7 +34,6 @@ class AcceptedPlaceAdmin(StackedInline):
 
 @admin.register(PlacePoints)
 class LocationAdmin(GuardedModelAdmin, LeafletGeoAdmin):
-    inlines = (AcceptedPlaceAdmin,)
     list_display = (
         'user',
         'status',

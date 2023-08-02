@@ -37,13 +37,13 @@ class AcceptPlaceSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
 
         user = Supervisor.objects.filter(username=request.user.username).first()
-        print(user)
 
         accepted_place = AcceptedPlace.objects.create(
             supervisor=user,
             description=validated_data['description'],
             mark=validated_data['mark'],
             mark_id=validated_data['mark'].id,
+            action=validated_data['action']
         )
 
         return accepted_place

@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 from guardian.admin import GuardedModelAdmin
 
-from .models import Accountant
+from .models import Accountant, PaymentMark
 
 
 # Register your models here.
@@ -35,3 +35,8 @@ class SupervisorAdmin(GuardedModelAdmin, UserAdmin):
         return None
 
     image_preview.short_description = 'Avatar'
+
+
+@admin.register(PaymentMark)
+class PaymentMarkAdmin(admin.ModelAdmin):
+    pass
