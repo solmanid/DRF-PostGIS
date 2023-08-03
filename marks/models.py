@@ -137,9 +137,9 @@ class AcceptedPlace(models.Model):
         failed = 2
 
     class Levels(models.TextChoices):
-        hard = "3"
-        normal = "2"
-        easy = "1"
+        hard = 3
+        normal = 2
+        easy = 1
 
     supervisor = models.ForeignKey(
         Supervisor,
@@ -188,6 +188,8 @@ class AcceptedPlace(models.Model):
             supervisor=request.user,
             description=request.data.get('description'),
             mark_id=request.data.get('mark'),
+            level=request.data.get('level'),
+            action=request.data.get('action'),
         )
 
     def __str__(self):

@@ -106,13 +106,13 @@ WSGI_APPLICATION = 'reporter.wsgi.application'
 #         "PORT": '5432',
 #     }
 # }
-#
+
 DATABASES = {
     'default': {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
 }
 }
-
+#
 # GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
 # GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
 
@@ -220,10 +220,10 @@ REST_FRAMEWORK = {
 
     # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        # 'rest_framework_jsonp.renderers.JSONPRenderer',
-    ],
+    # 'DEFAULT_RENDERER_CLASSES': [
+    #     'rest_framework.renderers.JSONRenderer',
+    #     # 'rest_framework_jsonp.renderers.JSONPRenderer',
+    # ],
     # 'DEFAULT_PARSER_CLASSES': [
     #     'rest_framework.parsers.JSONParser',
     # ]

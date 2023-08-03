@@ -43,7 +43,8 @@ class AcceptPlaceSerializer(serializers.ModelSerializer):
             description=validated_data['description'],
             mark=validated_data['mark'],
             mark_id=validated_data['mark'].id,
-            action=validated_data['action']
+            action=validated_data['action'],
+            level=validated_data['level'],
         )
 
         return accepted_place
