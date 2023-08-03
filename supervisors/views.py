@@ -58,7 +58,8 @@ class Accept(APIView):
         # mark: PlacePoints = serializer.validated_data['mark']
         if serializer.is_valid():
             mark: PlacePoints = serializer.validated_data['mark']
-            check_user = AcceptedPlace.objects.filter(supervisor=request.user.id, mark=mark).exists()
+            check_user = AcceptedPlace.objects.filter(supervisor=request.user.id, mark=mark,
+                                                      action=AcceptedPlace.Status.accepted).exists()
             place: PlacePoints = PlacePoints.objects.filter(id=mark.id).first()
 
             if place.is_accepted is False:
