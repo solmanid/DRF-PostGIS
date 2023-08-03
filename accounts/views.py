@@ -3,7 +3,7 @@ import datetime
 import random
 
 # Django build-in
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, logout
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
 # DRF
@@ -129,7 +129,7 @@ class EmployeeUpdate(APIView):
     def put(self, request, id):
         super_user = Supervisor.objects.filter(id=id).first()
         accountant_user = Accountant.objects.filter(id=id).first()
-        user: User = ''
+        user: User = None
         if super_user is not None:
             user = super_user
         if accountant_user is not None:
@@ -140,18 +140,18 @@ class EmployeeUpdate(APIView):
         else:
             ser_data = EmployeeUpdateSerializers(instance=user, data=request.data)
             if ser_data.is_valid():
-                refresh = RefreshToken.for_user(user)
-                token = str(refresh.access_token)
-                user.token = str(token)
-                user.refresh_token = str(refresh)
-                user.save()
-                # check_pass = user.check_password(ser_data.validated_data['new_password'])
-                # if check_pass is True:
-                user.set_password(ser_data.validated_data['new_password'])
-                ser_data.save()
+                check_pass = user.check_password(ser_data.validated_data['password'])
+                if check_pass is True:
+                    refresh = RefreshToken.for_user(user)
+                    token = str(refresh.access_token)
+                    user.token = str(token)
+                    user.refresh_token = str(refresh)
+                    user.save()
+                    ser_data.save()
 
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                return Response({'Token': user.token})
+                    return Response({'Token': user.token})
+                else:
+                    return Response({'Error': 'Invalid password'})
             return Response(ser_data.errors)
 
 

@@ -118,6 +118,13 @@ class EmployeeUpdateSerializers(serializers.ModelSerializer):
             raise serializers.ValidationError("Password must be match")
         return data
 
+    def update(self, instance: User, validated_data):
+        del validated_data['confirm_new']
+        instance.set_password(validated_data['new_password'])
+        del validated_data['new_password']
+        instance.save()
+        return instance
+
 
 class OtpCodeSerializer(serializers.ModelSerializer):
     class Meta:
