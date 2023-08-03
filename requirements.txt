@@ -33,6 +33,7 @@ PyJWT
 pytz==2023.3
 PyYAML==6.0
 referencing==0.29.1
+reportlab==4.0.4
 requests==2.31.0
 rpds-py==0.8.10
 six==1.16.0
