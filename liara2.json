@@ -13,5 +13,12 @@
       "name": "data",
       "mountTo": "/var/lib/postgresql"
     }
+  ],
+    "disks": [
+    {
+      "name": "data",
+      "mountTo": "/usr/src/app/media"
+    }
   ]
 }
+
