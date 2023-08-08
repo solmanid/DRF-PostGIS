@@ -12,6 +12,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "18"
+      - name: Run tests
+        run: python manage.py test
       - name: update-liara
         if: success()
         env:
