@@ -95,7 +95,7 @@ class OtpCode(models.Model):
 
     def send_gmail(self, email, code):
         send_email(
-            subject='LoginVerify',
+            subject='Login Verify',
             to=email,
             context={'code': code},
             template_name='emails/Login_verify.html')
@@ -141,4 +141,3 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
         },
         template_name='emails/reset_pass.html'
     )
-

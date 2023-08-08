@@ -87,10 +87,7 @@ class AcceptedList(generics.ListAPIView):
 
 
 class AddPayment(APIView):
-    # def get(self, request: HttpRequest):
-    #     query = AcceptedPlace.objects.filter(is_paid=False, action=AcceptedPlace.Status.accepted)
-    #     ser_data = AcceptedListSerializer(instance=query, many=True)
-    #     return Response(data=ser_data.data, status=status.HTTP_200_OK)
+    permission_classes = [IsAccountantUser, ]
 
     def post(self, request):
         ser_data = AddPaymentSerializers(data=request.data, context={'request': request})
@@ -106,9 +103,9 @@ class AddPayment(APIView):
                     ser_data.save()
                     return Response(data=ser_data.data, status=status.HTTP_201_CREATED)
                 else:
-                    return Response({'Notification': 'This mark is paid'})
+                    return Response({'Notification': 'This mark is paid'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response({'Notification': 'This mark is paid'})
+                return Response({'Notification': 'This mark is paid'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
 

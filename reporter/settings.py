@@ -210,8 +210,8 @@ REST_FRAMEWORK = {
         # 'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '30/hour',
-        'user': '60/hour',
+        'anon': '100/hour',
+        'user': '200/hour',
         # 'questions': '2/minute',
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',

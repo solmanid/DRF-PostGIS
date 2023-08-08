@@ -4,6 +4,7 @@ import random
 
 # Django build-in
 from django.contrib.auth import authenticate, logout
+from django.contrib.auth.hashers import check_password
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
 # DRF
@@ -52,12 +53,12 @@ class UserLogin(APIView):
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if user is None:
-            return Response({'user': 'dos not exist'})
+            return Response({'user': 'dos not exist'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             # if user is not None:
             if user.user_type == 'Supervisor':
                 if user.last_login is None:
-                    return Response({'Notification': 'set a new password', 'User': user.id})
+                    return Response({'Notification': 'set a new password', 'User': user.id}, status=status.HTTP_200_OK)
                 else:
                     refresh = RefreshToken.for_user(user)
                     token = str(refresh.access_token)
@@ -65,10 +66,10 @@ class UserLogin(APIView):
                     user.refresh_token = str(refresh)
                     user.save()
                     # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                    return Response({'Token': token, 'refresh': str(refresh)})
+                    return Response({'Token': token, 'refresh': str(refresh)}, status=status.HTTP_200_OK)
             if user.user_type == 'Accountant':
                 if user.last_login is None:
-                    return Response({'Notification': 'set a new password', 'User': user.id})
+                    return Response({'Notification': 'set a new password', 'User': user.id}, status=status.HTTP_200_OK)
                 else:
                     refresh = RefreshToken.for_user(user)
                     token = str(refresh.access_token)
@@ -76,7 +77,7 @@ class UserLogin(APIView):
                     user.refresh_token = str(refresh)
                     user.save()
                     # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                    return Response({'Token': token, 'refresh': str(refresh)})
+                    return Response({'Token': token, 'refresh': str(refresh)}, status=status.HTTP_200_OK)
             if user.user_type == 'People':
                 otp = OtpCode.objects.create(email=user.email, code=random.randint(1000, 9999))
                 otp_code = otp.code
@@ -95,14 +96,17 @@ class UserLoginVerify(APIView):
     def post(self, request: HttpRequest):
         ser_data = OtpCodeSerializer(data=request.data)
         if ser_data.is_valid():
-            user_code = ser_data.validated_data.get('code')
+            user_code = int(ser_data.validated_data.get('code'))
             try:
-                db_code = OtpCode.objects.get(code=user_code)
+                db_code = OtpCode.objects.filter(code=user_code).first()
             except OtpCode.DoesNotExist:
-                return Response({_('error'): _('Invalid Code')}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Invalid Code'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                otp_date = db_code.created.minute + 2
-                today_now = datetime.datetime.now().minute
+                if db_code:
+                    otp_date = db_code.created.minute + 2
+                    today_now = datetime.datetime.now().minute
+                else:
+                    return Response({"Error": "Invalid code"}, status=status.HTTP_400_BAD_REQUEST)
                 if otp_date < today_now:
                     db_code.delete()
                     return Response({'Time': 'Expired code'}, status=status.HTTP_400_BAD_REQUEST)
@@ -123,8 +127,12 @@ class UserLoginVerify(APIView):
         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class EmployeeUpdate(APIView):
+class EmployeeUpdate(generics.RetrieveUpdateAPIView):
     serializer_class = EmployeeUpdateSerializers
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return User.objects.none()
 
     def put(self, request, id):
         super_user = Supervisor.objects.filter(id=id).first()
@@ -136,12 +144,12 @@ class EmployeeUpdate(APIView):
             user = accountant_user
 
         if user is None:
-            return Response({'Error': 'User does not exist'})
+            return Response({'Error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             ser_data = EmployeeUpdateSerializers(instance=user, data=request.data)
-            if ser_data.is_valid():
+            if ser_data.is_valid(raise_exception=True):
                 check_pass = user.check_password(ser_data.validated_data['password'])
-                if check_pass is True:
+                if check_pass:
                     refresh = RefreshToken.for_user(user)
                     token = str(refresh.access_token)
                     user.token = str(token)
@@ -149,10 +157,10 @@ class EmployeeUpdate(APIView):
                     user.save()
                     ser_data.save()
 
-                    return Response({'Token': user.token})
+                    return Response({'Token': user.token}, status=status.HTTP_200_OK)
                 else:
-                    return Response({'Error': 'Invalid password'})
-            return Response(ser_data.errors)
+                    return Response({'Error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserUpdate(generics.UpdateAPIView):
@@ -162,7 +170,7 @@ class UserUpdate(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_serializer(self, *args, **kwargs):
-        kwargs['partial'] = True  # Set partial=True
+        kwargs['partial'] = True
         return super().get_serializer(*args, **kwargs)
 
     def perform_update(self, serializer):

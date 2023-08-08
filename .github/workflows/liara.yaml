@@ -13,6 +13,7 @@ jobs:
         with:
           node-version: "18"
       - name: update-liara
+        if: success()
         env:
           LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
         run: |

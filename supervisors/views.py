@@ -25,7 +25,7 @@ class SupervisorProfileView(APIView):
     This view only show accountant user information
     """
     serializer_class = SupervisorProfileSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly, IsSupervisorUser]
 
     def get(self, request: HttpRequest, id):
         user = Supervisor.objects.filter(id=id).first()
@@ -50,7 +50,7 @@ class Accept(APIView):
     def get(self, request: HttpRequest):
         query = AcceptedPlace.objects.filter(supervisor=request.user.id)
         ser_data = AcceptPlaceSerializer(instance=query, many=True)
-        return Response(data=ser_data.data)
+        return Response(data=ser_data.data, status=status.HTTP_200_OK)
 
     def post(self, request: HttpRequest):
         # Assuming you have already authenticated the user
@@ -73,9 +73,9 @@ class Accept(APIView):
                     if action == '2':
                         accepted_place = serializer.save()
                         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-                    return Response({'error': 'some thing is wrong'})
+                    return Response({'error': 'some thing is wrong'}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return Response({'Error': 'You already one times created'})
+                    return Response({'Error': 'You already one times created'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'Notification': 'This point is accepted'}, status=status.HTTP_400_BAD_REQUEST)
 

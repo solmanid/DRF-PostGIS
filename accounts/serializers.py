@@ -11,6 +11,7 @@ from .models import User, OtpCode
 
 class UserRegisterSerializers(serializers.ModelSerializer):
     password2 = serializers.CharField(max_length=100, write_only=True)
+    email = serializers.EmailField(required=True)
 
     class Meta:
         model = User
@@ -23,13 +24,16 @@ class UserRegisterSerializers(serializers.ModelSerializer):
         ]
 
         extra_kwargs = {
-            'email': {'required': True},
+            # 'email': {'required': True},
             'password': {'write_only': True},
         }
 
     def validate(self, data):
         if data['password'] != data['password2']:
             raise serializers.ValidationError("Password must be match")
+        user = User.objects.filter(email=data['email']).first()
+        if user is not None:
+            raise serializers.ValidationError("This Email already exists")
         return data
 
     def create(self, validated_data):

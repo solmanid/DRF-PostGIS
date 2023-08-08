@@ -38,8 +38,8 @@ class MarksListSerializers(serializers.ModelSerializer):
 
 
 class MarksAddSerializers(serializers.ModelSerializer):
-    lat = serializers.CharField(max_length=300)
-    lng = serializers.CharField(max_length=300)
+    lat = serializers.IntegerField()
+    lng = serializers.IntegerField()
 
     class Meta:
         model = PlacePoints
