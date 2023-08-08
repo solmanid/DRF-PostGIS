@@ -2,10 +2,10 @@
   "django": {
     "geospatial": true
   },
-  "disks": [
-    {
-      "name": "data",
-      "mountTo": "/usr/src/app/media"
-    }
-  ]
-}
+//  "disks": [
+//    {
+//      "name": "data",
+//      "mountTo": "/usr/src/app/media"
+//    }
+//  ]
+//}
