@@ -96,23 +96,23 @@ WSGI_APPLICATION = 'reporter.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 # postgis://root:UJxKF3dqufC4yUVN9oKIMXBe@gis:5432/postgres
 # postgis://root:tGlwphGfVSqwJbZIwmoAqULb@drfdb:5432/postgres
-# DATABASES = {
-#     'default': {
-#         "ENGINE": "django.contrib.gis.db.backends.postgis",
-#         "NAME": 'gis',
-#         "USER": 'gis',
-#         "PASSWORD": 'gis',
-#         "HOST": 'localhost',
-#         "PORT": '5432',
-#     }
-# }
-
 DATABASES = {
     'default': {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": 'gis',
+        "USER": 'gis',
+        "PASSWORD": 'gis',
+        "HOST": 'localhost',
+        "PORT": '5432',
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         "ENGINE": "django.contrib.gis.db.backends.postgis",
+#     }
+# }
+#
 # GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
 # GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
 
@@ -218,15 +218,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 4,
 
-    # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        # 'rest_framework_jsonp.renderers.JSONPRenderer',
-    ],
-    # 'DEFAULT_PARSER_CLASSES': [
-    #     'rest_framework.parsers.JSONParser',
-    # ]
+    # 'DEFAULT_RENDERER_CLASSES': [
+    #     'rest_framework.renderers.JSONRenderer',
+    # ],
+
 
 }
 
@@ -248,4 +244,3 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=2),
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
-# REST_USE_SIMPLE_JWT = True
